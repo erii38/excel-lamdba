@@ -1,0 +1,96 @@
+_进出水查找条件 = LAMBDA(_x, LET(_x, _x, _战旗函数(_x, , -1, , ) & _文本截取(_x, "-")));
+
+_名称对应的8位数组 = LAMBDA(_名称对应料号的中间值的区域, MAP(_名称对应料号的中间值(_名称对应料号的中间值的区域), LAMBDA(_x, MID(_x, 1, 8))));
+
+_名称对应料号的中间值 = LAMBDA(x,
+    MAP(
+        x,
+        LAMBDA(_y,
+            LET(
+                _x, _y,
+                XLOOKUP(
+                    _x & INT(COUNTA(FILTER(物料主档__2[品名], 物料主档__2[品名] = _x)) / 2),
+                    物料主档__2[名称计数器],
+                    物料主档__2[料号]
+                )
+            )
+        )
+    )
+);
+
+_提取工作表名称 = GET.WORKBOOK(1);
+
+_提取数字 = LAMBDA(要提取数字的单元格,
+    MIDB(要提取数字的单元格, SEARCHB("?", 要提取数字的单元格), LEN(要提取数字的单元格) * 2 - LENB(要提取数字的单元格))
+);
+
+_文本倒转 = LAMBDA(range, REDUCE(, MID(range, SEQUENCE(LEN(range)), 1), LAMBDA(x, y, y & x)));
+
+_文本截取 = LAMBDA(单元格位置, 要截取的字符, MID(单元格位置, 1, FIND(要截取的字符, 单元格位置) - 1));
+
+_战旗函数 = LAMBDA(要移动的单元格, 向下移动的格数, 向右移动的格数, 纵向范围, 横向范围,
+    OFFSET(要移动的单元格, 向下移动的格数, 向右移动的格数, 纵向范围, 横向范围)
+);
+
+_重量计算弯管 = LAMBDA(_单元格, _字符,
+    LET(
+        x, --TEXTSPLIT(_单元格, _字符, , 1),
+        (INDEX(x, , 1) - INDEX(x, , 2)) * INDEX(x, , 2) * 0.02494 *
+            (INDEX(x, , 3) + INDEX(x, , 4)) * 10 ^ -3 * 1.1
+    )
+);
+
+_重量计算圆管 = LAMBDA(x, y, z, a, n,
+    IFERROR(
+        (MID(x, 2, FIND(y, x) - 2) - MID(x, FIND(y, x) + 1, FIND(z, x) - FIND(y, x) - 1)) *
+            MID(x, FIND(y, x) + 1, FIND(z, x) - FIND(y, x) - 1) * 0.02491 *
+            MID(
+                x,
+                FIND(z, x) + 1,
+                IFERROR(
+                    IFERROR(
+                        FIND(a, x) - 1 - FIND(z, x) - 1,
+                        FIND(n, SUBSTITUTE(x, z, n, 2)) - (FIND(z, x) + 1)
+                    ),
+                    99
+                )
+            ) * 10 ^ -3 * 1.1,
+        ""
+    )
+);
+
+TEXT计算 = LAMBDA(x, EVALUATE(x));
+
+工作表名称 = LAMBDA(x, TRANSPOSE(MID(x, FIND("]", x) + 1, 99)));
+
+工作簿内的表格名称 = GET.WORKBOOK(1);
+
+规格 = OFFSET(
+    仓库成品下拉菜单引用表数据!$A$1,
+    1,
+    MATCH(BOM表!XFD10906, OFFSET(仓库成品下拉菜单引用表数据!$A$1, , , 1, COUNTA(仓库成品下拉菜单引用表数据!$1:$1)), 0) - 1,
+    COUNTA(
+        INDIRECT(
+            "仓库成品下拉菜单引用表数据!C" &
+                MATCH(
+                    BOM表!XFD10906,
+                    OFFSET(仓库成品下拉菜单引用表数据!$A$1, , , 1, COUNTA(仓库成品下拉菜单引用表数据!$1:$1)),
+                    0
+                ),
+            FALSE
+        )
+    ) - 1,
+    1
+);
+
+计算 = EVALUATE(BOM表!$R10906);
+
+料号 = '自动编码生成表，未完善版本'!$A$2:$A$10530;
+
+名称 = 仓库成品下拉菜单引用表数据!$A$1#;
+
+母件名称 = UNIQUE(FILTER(表1[名称2], 表1[子件料号] = ""));
+
+提取颜色 = GET.CELL(63, $I1);
+
+颜色 = GET.CELL(63, A1) );
